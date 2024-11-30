@@ -18,6 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QFormLayout, QHeaderView,
     QLabel, QMainWindow, QMenuBar, QSizePolicy,
     QStatusBar, QTableWidget, QTableWidgetItem, QWidget)
+import hostimage_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -37,11 +38,11 @@ class Ui_MainWindow(object):
         self.activeportsv.setStyleSheet(u"QLabel {\n"
 "    color: red;\n"
 "}")
-        self.label = QLabel(self.centralwidget)
-        self.label.setObjectName(u"label")
-        self.label.setGeometry(QRect(0, 50, 161, 131))
-        self.label.setPixmap(QPixmap(u"../../../Downloads/computer-icon-transparent-free-png.webp"))
-        self.label.setScaledContents(True)
+        self.imagehost = QLabel(self.centralwidget)
+        self.imagehost.setObjectName(u"imagehost")
+        self.imagehost.setGeometry(QRect(0, 50, 161, 131))
+        self.imagehost.setPixmap(QPixmap(u"../../../../Downloads/computer-icon-transparent-free-png.webp"))
+        self.imagehost.setScaledContents(True)
         self.port_scanv = QLabel(self.centralwidget)
         self.port_scanv.setObjectName(u"port_scanv")
         self.port_scanv.setGeometry(QRect(10, 10, 181, 41))
@@ -147,7 +148,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.activeportsv.setText(QCoreApplication.translate("MainWindow", u"Active ports", None))
-        self.label.setText("")
+        self.imagehost.setText("")
         self.port_scanv.setText(QCoreApplication.translate("MainWindow", u"Port scanning", None))
         ___qtablewidgetitem = self.Portstable.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"ports", None));

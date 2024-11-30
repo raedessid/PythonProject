@@ -2,6 +2,7 @@ import sys
 import nmap
 from PySide6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 from portscan import Ui_MainWindow  # Importer l'interface générée
+import codescanport
 
 
 # Fonction de scan des ports
