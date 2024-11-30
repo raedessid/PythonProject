@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="bag">
+    <file>462552380_502403956150508_6481998919226561891_n.jpg</file>
+  </qresource>
+  <qresource prefix="newPrefix"/>
+</RCC>
