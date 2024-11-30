@@ -56,7 +56,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>../../Downloads/magnifying-glass (1).png</pixmap>
+    <pixmap resource="bg.qrc">:/photos/magnifying-glass (1).png</pixmap>
    </property>
   </widget>
   <widget class="QLabel" name="label_7">
@@ -104,7 +104,7 @@
   <widget class="QLabel" name="traffic">
    <property name="geometry">
     <rect>
-     <x>620</x>
+     <x>610</x>
      <y>190</y>
      <width>131</width>
      <height>81</height>
@@ -114,7 +114,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>../../Downloads/computer (1).png</pixmap>
+    <pixmap resource="bg.qrc">:/photos/traffic.png</pixmap>
    </property>
   </widget>
   <widget class="QLabel" name="Scan">
@@ -130,12 +130,12 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>../../Downloads/responsive (1).png</pixmap>
+    <pixmap resource="bg.qrc">:/photos/responsive (1).png</pixmap>
    </property>
   </widget>
  </widget>
  <resources>
-  <include location="../bg.qrc"/>
+  <include location="bg.qrc"/>
  </resources>
  <connections/>
 </ui>
