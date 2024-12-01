@@ -9,6 +9,8 @@ from discovering1 import Ui_discovring  # Assuming discovering UI is in discover
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.resize(800, 600)
+
 
         # Create the stacked widget to hold multiple screens
         self.stacked_widget = QStackedWidget(self)
@@ -37,6 +39,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())

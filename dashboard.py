@@ -68,7 +68,7 @@ class Ui_dashboard(object):
         dashboard.setWindowTitle(QCoreApplication.translate("dashboard", u"Form", None))
         self.label_2.setText(QCoreApplication.translate("dashboard", u"Scan Devices/ports", None))
         self.analyse.setText("")
-        self.label_7.setText(QCoreApplication.translate("dashboard", u"Network Traffic", None))
+        self.label_7.setText(QCoreApplication.translate("dashboard", u"Traffic Monitoring", None))
         self.label_4.setText(QCoreApplication.translate("dashboard", u"ports analyses", None))
         self.traffic.setText("")
         self.Scan.setText("")

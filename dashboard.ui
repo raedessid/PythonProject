@@ -77,7 +77,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Network Traffic</string>
+    <string>Traffic Monitoring</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_4">
