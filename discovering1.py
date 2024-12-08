@@ -7,17 +7,14 @@ class Ui_discovring(object):
         discovring.setObjectName("discovring")
         discovring.resize(800, 600)
 
-        # Start Button
         self.startdisc = QPushButton(discovring)
         self.startdisc.setObjectName("startdisc")
         self.startdisc.setGeometry(QRect(460, 510, 141, 31))
 
-        # Stop Button
         self.stopdisc = QPushButton(discovring)
         self.stopdisc.setObjectName("stopdisc")
         self.stopdisc.setGeometry(QRect(620, 510, 121, 31))
 
-        # Table Widget for Grid Display
         self.tableWidget = QTableWidget(discovring)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setGeometry(QRect(50, 50, 700, 400))

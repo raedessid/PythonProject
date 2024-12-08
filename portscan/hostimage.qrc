@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="photo">
+    <file>computer-icon-transparent-free-png.webp</file>
+  </qresource>
+</RCC>
