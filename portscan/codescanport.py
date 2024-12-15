@@ -1,3 +1,4 @@
+import nmap
 def scan_ports(target_ip):
     scanner = nmap.PortScanner()
     try:

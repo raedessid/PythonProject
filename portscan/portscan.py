@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'portscan.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.0
+## Created by: Qt User Interface Compiler version 6.8.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -40,8 +40,8 @@ class Ui_MainWindow(object):
 "}")
         self.imagehost = QLabel(self.centralwidget)
         self.imagehost.setObjectName(u"imagehost")
-        self.imagehost.setGeometry(QRect(0, 50, 161, 131))
-        self.imagehost.setPixmap(QPixmap(u"../../../../Downloads/computer-icon-transparent-free-png.webp"))
+        self.imagehost.setGeometry(QRect(10, 60, 161, 131))
+        self.imagehost.setPixmap(QPixmap(u":/photo/467105502_1520897471899342_4847451542148929906_n.gif"))
         self.imagehost.setScaledContents(True)
         self.port_scanv = QLabel(self.centralwidget)
         self.port_scanv.setObjectName(u"port_scanv")
@@ -82,7 +82,7 @@ class Ui_MainWindow(object):
         self.Portstable.setAutoScroll(True)
         self.layoutWidget = QWidget(self.centralwidget)
         self.layoutWidget.setObjectName(u"layoutWidget")
-        self.layoutWidget.setGeometry(QRect(200, 80, 149, 70))
+        self.layoutWidget.setGeometry(QRect(200, 80, 281, 70))
         self.formLayout = QFormLayout(self.layoutWidget)
         self.formLayout.setObjectName(u"formLayout")
         self.formLayout.setContentsMargins(0, 0, 0, 0)

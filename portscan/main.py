@@ -1,15 +1,14 @@
 import sys
 import nmap
 from PySide6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
-from portscan import Ui_MainWindow  # Importer l'interface générée
-import codescanport
+from portscan import Ui_MainWindow  # Import the UI
 
 
-# Fonction de scan des ports
+# Scan ports using nmap
 def scan_ports(target_ip):
     scanner = nmap.PortScanner()
     try:
-        scanner.scan(target_ip, '1-1024', '-sV')
+        scanner.scan(target_ip, '1-1024', '-sV')  # Scan ports 1-1024
         results = []
         if 'tcp' in scanner[target_ip]:
             for port in scanner[target_ip]['tcp']:
@@ -20,39 +19,38 @@ def scan_ports(target_ip):
                 results.append((port, service, f"{product} {version}"))
         return results
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error during port scan: {e}")
         return []
 
 
-# Classe principale de l'application
+# Main application class
 class PortScannerApp(QMainWindow):
-    def __init__(self):
+    def __init__(self, target_ip, hostname, mac_address):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # Connecter le tableau pour afficher les résultats
+        # Set up table headers
         self.ui.Portstable.setHorizontalHeaderLabels(["Port", "Service", "Details"])
         self.ui.Portstable.setColumnWidth(0, 100)
         self.ui.Portstable.setColumnWidth(1, 150)
-        self.ui.Portstable.setColumnWidth(2, 200)
+        self.ui.Portstable.setColumnWidth(2, 300)
 
-        # Exemple : Cible par défaut (vous pouvez ajouter une entrée utilisateur plus tard)
-        target_ip = "127.0.0.1"
+        # Display target information
+        self.ui.contenuip.setText(target_ip)
+        self.ui.contenuhostname.setText(hostname)
+        self.ui.contenumac.setText(mac_address)
 
-        # Déclencher le scan et afficher les résultats
+        # Perform and display the scan results
         self.perform_scan(target_ip)
 
     def perform_scan(self, target_ip):
         results = scan_ports(target_ip)
 
-        # Mise à jour des labels (exemple IP seulement ici)
-        self.ui.contenuip.setText(target_ip)
-        self.ui.contenuhostname.setText("sirine")
-        self.ui.contenumac.setText("fffff")
+        # Clear table before updating
+        self.ui.Portstable.setRowCount(0)
 
-
-        # Remplir le tableau avec les résultats
+        # Populate table with scan results
         self.ui.Portstable.setRowCount(len(results))
         for row, (port, service, details) in enumerate(results):
             self.ui.Portstable.setItem(row, 0, QTableWidgetItem(str(port)))
@@ -60,9 +58,18 @@ class PortScannerApp(QMainWindow):
             self.ui.Portstable.setItem(row, 2, QTableWidgetItem(details))
 
 
-# Lancer l'application
+# Entry point for the script
 if __name__ == "__main__":
+    if len(sys.argv) < 4:
+        print("Usage: main.py <ip_address> <hostname> <mac_address>")
+        sys.exit(1)
+
+    # Read target information from arguments
+    target_ip = sys.argv[1]
+    hostname = sys.argv[2]
+    mac_address = sys.argv[3]
+
     app = QApplication(sys.argv)
-    window = PortScannerApp()
+    window = PortScannerApp(target_ip, hostname, mac_address)
     window.show()
     sys.exit(app.exec())

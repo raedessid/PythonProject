@@ -43,8 +43,8 @@
    <widget class="QLabel" name="imagehost">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>50</y>
+      <x>10</x>
+      <y>60</y>
       <width>161</width>
       <height>131</height>
      </rect>
@@ -53,7 +53,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>../../../../Downloads/computer-icon-transparent-free-png.webp</pixmap>
+     <pixmap resource="hostimage.qrc">:/photo/467105502_1520897471899342_4847451542148929906_n.gif</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>
@@ -152,7 +152,7 @@
      <rect>
       <x>200</x>
       <y>80</y>
-      <width>149</width>
+      <width>281</width>
       <height>70</height>
      </rect>
     </property>

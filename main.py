@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 from dashboard import Ui_dashboard
-from network import NetworkScannerApp  b 
+from network import NetworkScannerApp
 
 class MainWindow(QMainWindow):
     def __init__(self):
