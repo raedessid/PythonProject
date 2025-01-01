@@ -1,167 +1,193 @@
 import sys
 import time
+import os
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QTableWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QMessageBox
 from PyQt5 import uic
-from scapy.all import sniff, get_if_list, conf  # For packet capture and interface list
+from scapy.all import *
 from PyQt5.QtCore import QThread, pyqtSignal
+from scapy.utils import wrpcap
 
-
-# Define the worker thread to handle packet capture in the background
 class CaptureThread(QThread):
-    packet_captured = pyqtSignal(object)  # Signal to send captured packet data
-    finished = pyqtSignal()  # Signal when capture finishes
+    packet_captured = pyqtSignal(object)
+    finished = pyqtSignal()
 
-    def __init__(self, network_interface):
+    def __init__(self, network_interface, packet_type):
         super().__init__()
         self.network_interface = network_interface
-        self.running = True  # Flag to control sniffing
+        self.packet_type = packet_type
+        self.running = False
+        self.captured_packets = []
 
     def run(self):
-        """Capture packets continuously in the background."""
+        self.running = True
         conf.sniff_promisc = True
 
         def packet_callback(packet):
-            if self.running:  # Continue sniffing until the flag is set to False
-                self.packet_captured.emit(packet)  # Emit signal for each captured packet
+            if self.running:
+                if self.packet_type == "All" or packet.haslayer(eval(self.packet_type)):
+                    self.captured_packets.append(packet)
+                    self.packet_captured.emit(packet)
 
         try:
-            # Sniff packets indefinitely
-            sniff( prn=packet_callback, store=0)
+            sniff(prn=packet_callback, store=0, stop_filter=lambda _: not self.running)
         except Exception as e:
             print(f"Error in sniffing packets: {e}")
         finally:
-            self.finished.emit()  # Emit finished signal when capture is done or stopped
+            self.running = False
+            self.finished.emit()
 
     def stop_capture(self):
-        """Stop packet capturing."""
-        self.running = False  # Stop packet sniffing by changing the flag
-
+        self.running = False
 
 class PacketCaptureApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Load the UI from the .ui file
         uic.loadUi("traffic_monitoring1.ui", self)
 
-        # Connect buttons to methods
-        self.pushButton_3.clicked.connect(self.start_capture)  # Start capture button
-        self.pushButton_4.clicked.connect(self.stop_capture)   # Stop capture button
-
-        # Initially, disable the stop button
+        self.pushButton_3.clicked.connect(self.start_capture)  # Start Capture
+        self.pushButton_4.clicked.connect(self.stop_capture)  # Stop Capture
+        self.pushButton.clicked.connect(self.download_packets)  # Download Packets
+        self.pushButton_2.clicked.connect(self.close)  # Back Button
         self.pushButton_4.setEnabled(False)
-
-        # Define a list to hold the captured packet data
         self.packet_data = []
-
-        # Set the network interface to sniff on (use a method to list available interfaces)
         self.network_interface = self.get_network_interface()
-
-        # Set up the capture thread
         self.capture_thread = None
 
     def get_network_interface(self):
-        """Return the first network interface available for sniffing."""
         interfaces = get_if_list()
+        print(interfaces)
         if interfaces:
-            return interfaces[0]  # Use the first available network interface
+            return interfaces[0]
         return None
 
     def start_capture(self):
-        """Start capturing packets."""
-        self.pushButton_3.setEnabled(False)  # Disable the start button during capture
-        self.pushButton_4.setEnabled(True)   # Enable the stop button
+        selected_filter = self.packet_type.currentText()
+        self.pushButton_3.setEnabled(False)
+        self.pushButton_4.setEnabled(True)
+
+        if self.capture_thread is not None:
+            self.stop_capture()
+
+        self.packet_data = []
+        self.update_table()
 
         if self.capture_thread is None:
-            # Initialize and start the capture thread
-            self.capture_thread = CaptureThread(self.network_interface)
+            self.capture_thread = CaptureThread(self.network_interface, selected_filter)
             self.capture_thread.packet_captured.connect(self.process_packet)
             self.capture_thread.finished.connect(self.on_capture_finished)
             self.capture_thread.start()
 
     def stop_capture(self):
-        """Stop capturing packets."""
-        self.pushButton_3.setEnabled(True)  # Enable the start button
-        self.pushButton_4.setEnabled(False)  # Disable the stop button
-
+        self.pushButton_3.setEnabled(True)
+        self.pushButton_4.setEnabled(False)
         if self.capture_thread is not None:
-            self.capture_thread.stop_capture()  # Stop the capture thread
+            self.capture_thread.stop_capture()
 
     def on_capture_finished(self):
-        """Handle capture thread finishing."""
-        self.capture_thread.wait()  # Wait for the thread to finish
-        self.capture_thread = None  # Reset the capture thread
+        if self.capture_thread:
+            self.capture_thread.wait()
+            self.capture_thread = None
 
     def process_packet(self, packet):
-        """Process and display captured packet."""
         try:
-            # Extract relevant packet information (source IP, destination IP, protocol, etc.)
-            if packet.haslayer("IP"):
-                source = packet["IP"].src
-                destination = packet["IP"].dst
-                protocol = packet["IP"].proto
-                protocol_name = self.get_protocol_name(protocol)
-                info = str(packet.summary())  # Info about the packet
-                timestamp = time.ctime()  # Current time
-
-                # Add the captured packet data to the list
-                self.packet_data.append([source, destination, protocol_name, info, timestamp])
-
-                # Update the table with the captured packet data
-                self.update_table()
-            elif packet.haslayer("ARP"):
-                # Capture ARP packets as well
-                source = packet["ARP"].psrc
-                destination = packet["ARP"].pdst
+            if packet.haslayer(ARP):
+                source_ip = packet[ARP].psrc
+                destination_ip = packet[ARP].pdst
+                source_mac = packet[ARP].hwsrc
+                destination_mac = packet[ARP].hwdst
                 protocol_name = "ARP"
-                info = str(packet.summary())  # Info about the packet
-                timestamp = time.ctime()  # Current time
+                flags = "N/A"
+                info = str(packet.summary())
+                source_port = "N/A"
+                destination_port = "N/A"
+                timestamp = time.ctime()
+                self.packet_data.append(
+                    [source_ip, destination_ip, source_mac, destination_mac, protocol_name, flags, info, source_port,
+                     destination_port, timestamp]
+                )
 
-                # Add the captured packet data to the list
-                self.packet_data.append([source, destination, protocol_name, info, timestamp])
+            elif packet.haslayer(ICMP) and packet.haslayer(IP):
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                source_mac = "N/A"
+                destination_mac = "N/A"
+                protocol_name = "ICMP"
+                flags = "N/A"
+                info = str(packet.summary())
+                source_port = "N/A"
+                destination_port = "N/A"
+                timestamp = time.ctime()
+                self.packet_data.append(
+                    [source_ip, destination_ip, source_mac, destination_mac, protocol_name, flags, info, source_port,
+                     destination_port, timestamp]
+                )
 
-                # Update the table with the captured packet data
-                self.update_table()
+            elif packet.haslayer(TCP) and packet.haslayer(IP):
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                source_mac = "N/A"
+                destination_mac = "N/A"
+                protocol_name = "TCP"
+                flags = str(packet[TCP].flags)  # Convert to string
+                source_port = packet[TCP].sport
+                destination_port = packet[TCP].dport
+                info = f"{source_ip}:{source_port} -> {destination_ip}:{destination_port}"
+                timestamp = time.ctime()
+                self.packet_data.append(
+                    [source_ip, destination_ip, source_mac, destination_mac, protocol_name, flags, info, source_port,
+                     destination_port, timestamp]
+                )
+
+            elif packet.haslayer(UDP) and packet.haslayer(IP):
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                source_mac = "N/A"
+                destination_mac = "N/A"
+                protocol_name = "UDP"
+                flags = "N/A"
+                source_port = packet[UDP].sport
+                destination_port = packet[UDP].dport
+                info = f"{source_ip}:{source_port} -> {destination_ip}:{destination_port}"
+                timestamp = time.ctime()
+                self.packet_data.append(
+                    [source_ip, destination_ip, source_mac, destination_mac, protocol_name, flags, info, source_port,
+                     destination_port, timestamp]
+                )
+
+            self.update_table()
 
         except Exception as e:
-            # Handle any packets that don't have the expected layers (e.g., malformed packets)
             print(f"Error processing packet: {e}")
 
-    def get_protocol_name(self, protocol_number):
-        """Convert protocol number to a human-readable protocol name."""
-        protocol_map = {
-            1: "ICMP",
-            6: "TCP",
-            17: "UDP",
-            58: "ICMPv6",
-        }
-        return protocol_map.get(protocol_number, "Unknown")
-
     def update_table(self):
-        """Update the QTableWidget with packet data."""
-        # Set the row count to match the number of packets
         self.tableWidget.setRowCount(len(self.packet_data))
-
-        # Add data to the table
         for row, packet in enumerate(self.packet_data):
-            source_item = QTableWidgetItem(packet[0])  # Source IP
-            destination_item = QTableWidgetItem(packet[1])  # Destination IP
-            protocol_item = QTableWidgetItem(packet[2])  # Protocol (TCP, UDP, ARP, etc.)
-            info_item = QTableWidgetItem(packet[3])  # Info (HTTP request, DNS, etc.)
-            timestamp_item = QTableWidgetItem(packet[4])  # Timestamp
+            try:
+                self.tableWidget.setItem(row, 0, QTableWidgetItem(packet[0]))  # Source IP
+                self.tableWidget.setItem(row, 1, QTableWidgetItem(packet[1]))  # Destination IP
+                self.tableWidget.setItem(row, 2, QTableWidgetItem(packet[2]))  # Source MAC
+                self.tableWidget.setItem(row, 3, QTableWidgetItem(packet[3]))  # Destination MAC
+                self.tableWidget.setItem(row, 4, QTableWidgetItem(packet[4]))  # Protocol
+                self.tableWidget.setItem(row, 5, QTableWidgetItem(packet[5]))  # Flags
+                self.tableWidget.setItem(row, 6, QTableWidgetItem(packet[6]))  # Info
+                self.tableWidget.setItem(row, 7, QTableWidgetItem(str(packet[7])))  # Source Port
+                self.tableWidget.setItem(row, 8, QTableWidgetItem(str(packet[8])))  # Destination Port
+                self.tableWidget.setItem(row, 9, QTableWidgetItem(packet[9]))  # Timestamp
+            except Exception as e:
+                print(f"Error updating row {row}: {e}")
 
-            # Add items to the corresponding columns in the table
-            self.tableWidget.setItem(row, 0, source_item)
-            self.tableWidget.setItem(row, 1, destination_item)
-            self.tableWidget.setItem(row, 2, protocol_item)
-            self.tableWidget.setItem(row, 3, info_item)
-            self.tableWidget.setItem(row, 4, timestamp_item)
+    def download_packets(self):
+        if self.packet_data:
+            directory = os.path.expanduser(r"C:\Users\RaedE")
+            file_path = os.path.join(directory, "packets.pcap")
+            packets_to_save = self.capture_thread.captured_packets
+
+            wrpcap(file_path, packets_to_save)
+            QMessageBox.information(self, "Download Complete", f"Packets saved to {file_path}")
+
+        else:
+            QMessageBox.warning(self, "No Packets", "No packets captured to save.")
 
 
-# Run the application
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = PacketCaptureApp()
-    window.show()
-    sys.exit(app.exec_())
